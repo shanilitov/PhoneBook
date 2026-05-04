@@ -142,8 +142,8 @@ export default function ReaderScreen({ route, navigation }) {
                     <View style={[styles.downloadFill, { width: `${Math.round(progress * 100)}%` }]} />
                   </View>
                 )}
-                <TouchableOpacity style={styles.cancelBtn} onPress={handleCancelDownload}>
-                  <Text style={styles.cancelBtnText}>ביטול</Text>
+                <TouchableOpacity style={styles.downloadCancelBtn} onPress={handleCancelDownload}>
+                  <Text style={styles.downloadCancelBtnText}>ביטול</Text>
                 </TouchableOpacity>
               </View>
             ) : (
@@ -482,19 +482,18 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     borderRadius: RADIUS.full,
   },
-  cancelBtn: {
+  downloadCancelBtn: {
     paddingHorizontal: SPACING.xl,
     paddingVertical: SPACING.sm,
     borderRadius: RADIUS.lg,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
-  cancelBtnText: {
+  downloadCancelBtnText: {
     color: COLORS.textSecondary,
     fontSize: FONT_SIZES.base,
     fontWeight: '600',
   },
-  // Modal
   modalOverlay: {
     flex: 1,
     backgroundColor: COLORS.overlay,
