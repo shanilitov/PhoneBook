@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -28,7 +28,7 @@ export default function HomeScreen({ navigation }) {
   const [query, setQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('הכל');
 
-  const allCategories = ['הכל', ...categories];
+  const allCategories = useMemo(() => ['הכל', ...categories], [categories]);
 
   const displayedBooks = useMemo(() => {
     if (query.trim()) return searchBooks(query);
@@ -37,50 +37,21 @@ export default function HomeScreen({ navigation }) {
 
   const featuredBooks = useMemo(() => getFeaturedBooks(), [books]);
 
-  const handleBookPress = (book) => {
-    navigation.navigate('BookDetail', { bookId: book.id });
-  };
+  const handleBookPress = useCallback(
+    (book) => navigation.navigate('BookDetail', { bookId: book.id }),
+    [navigation]
+  );
 
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-      </View>
-    );
-  }
+  const renderBook = useCallback(
+    ({ item }) => <BookCard book={item} onPress={handleBookPress} style={styles.gridCard} />,
+    [handleBookPress]
+  );
 
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
-      <ScrollView
-        style={styles.container}
-        showsVerticalScrollIndicator={false}
-        stickyHeaderIndices={[1]}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.greeting}>ברוך הבא 📚</Text>
-            <Text style={styles.headerTitle}>הספרייה שלך</Text>
-          </View>
-          <TouchableOpacity
-            style={styles.headerIcon}
-            onPress={() => navigation.navigate('Admin')}
-          >
-            <Ionicons name="settings-outline" size={24} color={COLORS.textSecondary} />
-          </TouchableOpacity>
-        </View>
-
-        {/* Sticky search bar */}
-        <View style={styles.searchWrapper}>
-          <SearchBar
-            value={query}
-            onChangeText={setQuery}
-            onClear={() => setQuery('')}
-          />
-        </View>
-
-        {/* Featured section (hidden when searching) */}
+  // Memoized header element rendered above the grid items
+  const listHeader = useMemo(
+    () => (
+      <View>
+        {/* Featured section */}
         {!query.trim() && featuredBooks.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>✨ מומלצים</Text>
@@ -90,14 +61,12 @@ export default function HomeScreen({ navigation }) {
               keyExtractor={(b) => b.id}
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.featuredList}
-              renderItem={({ item }) => (
-                <FeaturedCard book={item} onPress={handleBookPress} />
-              )}
+              renderItem={({ item }) => <FeaturedCard book={item} onPress={handleBookPress} />}
             />
           </View>
         )}
 
-        {/* Category pills (hidden when searching) */}
+        {/* Category pills */}
         {!query.trim() && (
           <ScrollView
             horizontal
@@ -126,33 +95,71 @@ export default function HomeScreen({ navigation }) {
           </ScrollView>
         )}
 
-        {/* Book grid */}
+        {/* Section title + count */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
             {getSectionTitle(query, selectedCategory)}
             <Text style={styles.countText}>  {displayedBooks.length}</Text>
           </Text>
-          {displayedBooks.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Ionicons name="library-outline" size={56} color={COLORS.textMuted} />
-              <Text style={styles.emptyText}>לא נמצאו ספרים</Text>
-            </View>
-          ) : (
-            <View style={styles.grid}>
-              {displayedBooks.map((book) => (
-                <BookCard
-                  key={book.id}
-                  book={book}
-                  onPress={handleBookPress}
-                  style={styles.gridCard}
-                />
-              ))}
-            </View>
-          )}
         </View>
+      </View>
+    ),
+    [query, featuredBooks, allCategories, selectedCategory, displayedBooks.length, handleBookPress]
+  );
 
-        <View style={{ height: SPACING['3xl'] }} />
-      </ScrollView>
+  const listEmpty = useMemo(
+    () => (
+      <View style={styles.emptyState}>
+        <Ionicons name="library-outline" size={56} color={COLORS.textMuted} />
+        <Text style={styles.emptyText}>לא נמצאו ספרים</Text>
+      </View>
+    ),
+    []
+  );
+
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
+
+      {/* Fixed header — stays above the scrollable list */}
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.greeting}>ברוך הבא 📚</Text>
+          <Text style={styles.headerTitle}>הספרייה שלך</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.headerIcon}
+          onPress={() => navigation.navigate('Admin')}
+        >
+          <Ionicons name="settings-outline" size={24} color={COLORS.textSecondary} />
+        </TouchableOpacity>
+      </View>
+
+      {/* Fixed search bar */}
+      <View style={styles.searchWrapper}>
+        <SearchBar value={query} onChangeText={setQuery} onClear={() => setQuery('')} />
+      </View>
+
+      {/* Virtualized book grid */}
+      <FlatList
+        data={displayedBooks}
+        numColumns={2}
+        keyExtractor={(b) => b.id}
+        renderItem={renderBook}
+        ListHeaderComponent={listHeader}
+        ListEmptyComponent={listEmpty}
+        columnWrapperStyle={styles.columnWrapper}
+        contentContainerStyle={styles.flatListContent}
+        showsVerticalScrollIndicator={false}
+      />
     </SafeAreaView>
   );
 }
@@ -190,10 +197,6 @@ function FeaturedCard({ book, onPress }) {
 
 const styles = StyleSheet.create({
   safeArea: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  container: {
     flex: 1,
     backgroundColor: COLORS.background,
   },
@@ -309,15 +312,16 @@ const styles = StyleSheet.create({
   categoryPillTextActive: {
     color: COLORS.white,
   },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  columnWrapper: {
     paddingHorizontal: SPACING.sm,
     gap: SPACING.sm,
   },
   gridCard: {
-    width: '46%',
-    marginHorizontal: '2%',
+    flex: 1,
+    marginBottom: SPACING.sm,
+  },
+  flatListContent: {
+    paddingBottom: SPACING['3xl'],
   },
   emptyState: {
     alignItems: 'center',
@@ -329,3 +333,4 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
   },
 });
+

@@ -11,16 +11,22 @@
       "resizeMode": "contain",
       "backgroundColor": "#1a1a2e"
     },
+    "updates": {
+      "enabled": true
+    },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.phonebook.app"
+      "bundleIdentifier": "com.phonebook.app",
+      "jsEngine": "hermes"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1a1a2e"
       },
-      "package": "com.phonebook.app"
+      "package": "com.phonebook.app",
+      "targetSdkVersion": 34,
+      "jsEngine": "hermes"
     },
     "plugins": [
       "expo-document-picker"

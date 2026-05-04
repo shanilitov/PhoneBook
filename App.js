@@ -3,7 +3,7 @@ import React from 'react';
 import { I18nManager } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -22,16 +22,16 @@ import AdminScreen from './src/screens/AdminScreen';
 import { COLORS, FONT_SIZES } from './src/theme';
 
 const Tab = createBottomTabNavigator();
-const LibraryStack = createStackNavigator();
-const BookmarksStack = createStackNavigator();
-const AdminStack = createStackNavigator();
+const LibraryStack = createNativeStackNavigator();
+const BookmarksStack = createNativeStackNavigator();
+const AdminStack = createNativeStackNavigator();
 
 function LibraryNavigator() {
   return (
     <LibraryStack.Navigator
       screenOptions={{
         headerShown: false,
-        cardStyle: { backgroundColor: COLORS.background },
+        contentStyle: { backgroundColor: COLORS.background },
       }}
     >
       <LibraryStack.Screen name="Home" component={HomeScreen} />
@@ -46,7 +46,7 @@ function BookmarksNavigator() {
     <BookmarksStack.Navigator
       screenOptions={{
         headerShown: false,
-        cardStyle: { backgroundColor: COLORS.background },
+        contentStyle: { backgroundColor: COLORS.background },
       }}
     >
       <BookmarksStack.Screen name="BookmarksList" component={BookmarksScreen} />
@@ -60,7 +60,7 @@ function AdminNavigator() {
     <AdminStack.Navigator
       screenOptions={{
         headerShown: false,
-        cardStyle: { backgroundColor: COLORS.background },
+        contentStyle: { backgroundColor: COLORS.background },
       }}
     >
       <AdminStack.Screen name="AdminMain" component={AdminScreen} />
