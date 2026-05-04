@@ -46,7 +46,7 @@ export function BooksProvider({ children }) {
   const addBook = useCallback(
     async (bookData) => {
       const newBook = {
-        id: Date.now().toString(),
+        id: `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
         addedDate: new Date().toISOString(),
         rating: 0,
         featured: false,

@@ -47,7 +47,7 @@ export function BookmarksProvider({ children }) {
       // Avoid duplicate pages
       if (existing.some((bm) => bm.page === page)) return null;
       const newBm = {
-        id: Date.now().toString(),
+        id: `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
         bookId,
         page,
         note,

@@ -16,6 +16,12 @@ import BookCard from '../components/BookCard';
 import SearchBar from '../components/SearchBar';
 import { COLORS, SPACING, RADIUS, FONT_SIZES, SHADOWS } from '../theme';
 
+function getSectionTitle(query, selectedCategory) {
+  if (query.trim()) return `Results for "${query}"`;
+  if (selectedCategory === 'All') return 'All Books';
+  return selectedCategory;
+}
+
 export default function HomeScreen({ navigation }) {
   const { books, categories, loading, getFeaturedBooks, getBooksByCategory, searchBooks } =
     useBooks();
@@ -123,7 +129,7 @@ export default function HomeScreen({ navigation }) {
         {/* Book grid */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
-            {query.trim() ? `Results for "${query}"` : selectedCategory === 'All' ? 'All Books' : selectedCategory}
+            {getSectionTitle(query, selectedCategory)}
             <Text style={styles.countText}>  {displayedBooks.length}</Text>
           </Text>
           {displayedBooks.length === 0 ? (
