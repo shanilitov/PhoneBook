@@ -10,6 +10,7 @@ import {
   TextInput,
   ActivityIndicator,
   Platform,
+  I18nManager,
 } from 'react-native';
 import Pdf from 'react-native-pdf';
 import * as DocumentPicker from 'expo-document-picker';
@@ -56,7 +57,7 @@ export default function ReaderScreen({ route, navigation }) {
       await updateBook(bookId, { pdfUri: destUri, isLocal: true });
       setPdfSource({ uri: destUri, cache: true });
     } catch (e) {
-      Alert.alert('Error', 'Could not load PDF file.');
+      Alert.alert('שגיאה', 'לא ניתן לטעון קובץ PDF.');
     }
   }, [bookId, updateBook]);
 
@@ -65,10 +66,10 @@ export default function ReaderScreen({ route, navigation }) {
       const bms = getBookmarks(bookId);
       const bm = bms.find((b) => b.page === currentPage);
       if (bm) {
-        Alert.alert('Remove Bookmark', `Remove bookmark for page ${currentPage}?`, [
-          { text: 'Cancel', style: 'cancel' },
+        Alert.alert('הסרת סימנייה', `להסיר סימנייה לעמוד ${currentPage}?`, [
+          { text: 'ביטול', style: 'cancel' },
           {
-            text: 'Remove',
+            text: 'הסר',
             style: 'destructive',
             onPress: () => deleteBookmark(bookId, bm.id),
           },
@@ -88,7 +89,7 @@ export default function ReaderScreen({ route, navigation }) {
   if (!book) {
     return (
       <View style={styles.center}>
-        <Text style={styles.errorText}>Book not found.</Text>
+        <Text style={styles.errorText}>הספר לא נמצא.</Text>
       </View>
     );
   }
@@ -99,15 +100,15 @@ export default function ReaderScreen({ route, navigation }) {
       <View style={styles.noPdfContainer}>
         <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.white} />
+          <Ionicons name={I18nManager.isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={COLORS.white} />
         </TouchableOpacity>
         <View style={styles.noPdfContent}>
           <Ionicons name="document-outline" size={80} color={COLORS.textMuted} />
           <Text style={styles.noPdfTitle}>{book.title}</Text>
-          <Text style={styles.noPdfSubtitle}>No PDF file attached to this book.</Text>
+          <Text style={styles.noPdfSubtitle}>אין קובץ PDF מצורף לספר זה.</Text>
           <TouchableOpacity style={styles.pickBtn} onPress={pickPdf}>
             <Ionicons name="folder-open-outline" size={22} color={COLORS.white} />
-            <Text style={styles.pickBtnText}>Choose PDF File</Text>
+            <Text style={styles.pickBtnText}>בחר קובץ PDF</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -134,8 +135,8 @@ export default function ReaderScreen({ route, navigation }) {
           }}
           onPageChanged={(page) => setCurrentPage(page)}
           onError={() => {
-            Alert.alert('Error', 'Failed to load PDF.', [
-              { text: 'OK', onPress: () => navigation.goBack() },
+            Alert.alert('שגיאה', 'טעינת ה-PDF נכשלה.', [
+              { text: 'אישור', onPress: () => navigation.goBack() },
             ]);
           }}
           onLoadProgress={() => setLoading(true)}
@@ -162,7 +163,7 @@ export default function ReaderScreen({ route, navigation }) {
               style={styles.controlBtn}
               onPress={() => navigation.goBack()}
             >
-              <Ionicons name="arrow-back" size={24} color={COLORS.text} />
+              <Ionicons name={I18nManager.isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={COLORS.text} />
             </TouchableOpacity>
             <View style={styles.topTitle}>
               <Text style={styles.topTitleText} numberOfLines={1}>
@@ -194,13 +195,13 @@ export default function ReaderScreen({ route, navigation }) {
               onPress={() => pdfRef.current?.setPage(currentPage - 1)}
             >
               <Ionicons
-                name="chevron-back"
+                name={I18nManager.isRTL ? 'chevron-forward' : 'chevron-back'}
                 size={28}
                 color={currentPage <= 1 ? COLORS.textMuted : COLORS.text}
               />
             </TouchableOpacity>
             <Text style={styles.bottomPageText}>
-              Page {currentPage}{totalPages > 0 ? ` of ${totalPages}` : ''}
+              עמוד {currentPage}{totalPages > 0 ? ` מתוך ${totalPages}` : ''}
             </Text>
             <TouchableOpacity
               style={styles.navBtn}
@@ -208,7 +209,7 @@ export default function ReaderScreen({ route, navigation }) {
               onPress={() => pdfRef.current?.setPage(currentPage + 1)}
             >
               <Ionicons
-                name="chevron-forward"
+                name={I18nManager.isRTL ? 'chevron-back' : 'chevron-forward'}
                 size={28}
                 color={
                   totalPages > 0 && currentPage >= totalPages
@@ -230,29 +231,30 @@ export default function ReaderScreen({ route, navigation }) {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Add Bookmark</Text>
-            <Text style={styles.modalSubtitle}>Page {currentPage}</Text>
+            <Text style={styles.modalTitle}>הוספת סימנייה</Text>
+            <Text style={styles.modalSubtitle}>עמוד {currentPage}</Text>
             <TextInput
               style={styles.noteInput}
               value={noteText}
               onChangeText={setNoteText}
-              placeholder="Add a note (optional)..."
+              placeholder="הוסף הערה (אופציונלי)..."
               placeholderTextColor={COLORS.textMuted}
               multiline
               maxLength={200}
+              textAlign="right"
             />
             <View style={styles.modalActions}>
               <TouchableOpacity
                 style={[styles.modalBtn, styles.cancelBtn]}
                 onPress={() => setNoteModalVisible(false)}
               >
-                <Text style={styles.cancelBtnText}>Cancel</Text>
+                <Text style={styles.cancelBtnText}>ביטול</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalBtn, styles.saveBtn]}
                 onPress={handleSaveBookmark}
               >
-                <Text style={styles.saveBtnText}>Save</Text>
+                <Text style={styles.saveBtnText}>שמור</Text>
               </TouchableOpacity>
             </View>
           </View>

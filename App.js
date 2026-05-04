@@ -1,10 +1,14 @@
 import 'react-native-gesture-handler';
 import React from 'react';
+import { I18nManager } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
+
+I18nManager.allowRTL(true);
+I18nManager.forceRTL(true);
 
 import { BooksProvider } from './src/context/BooksContext';
 import { BookmarksProvider } from './src/context/BookmarksContext';
@@ -102,17 +106,17 @@ export default function App() {
             <Tab.Screen
               name="Library"
               component={LibraryNavigator}
-              options={{ title: 'Library' }}
+              options={{ title: 'ספרייה' }}
             />
             <Tab.Screen
               name="Bookmarks"
               component={BookmarksNavigator}
-              options={{ title: 'Bookmarks' }}
+              options={{ title: 'סימניות' }}
             />
             <Tab.Screen
               name="Admin"
               component={AdminNavigator}
-              options={{ title: 'Admin' }}
+              options={{ title: 'ניהול' }}
             />
           </Tab.Navigator>
         </NavigationContainer>

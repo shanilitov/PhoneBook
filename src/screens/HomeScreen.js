@@ -17,8 +17,8 @@ import SearchBar from '../components/SearchBar';
 import { COLORS, SPACING, RADIUS, FONT_SIZES, SHADOWS } from '../theme';
 
 function getSectionTitle(query, selectedCategory) {
-  if (query.trim()) return `Results for "${query}"`;
-  if (selectedCategory === 'All') return 'All Books';
+  if (query.trim()) return `תוצאות עבור "${query}"`;
+  if (selectedCategory === 'הכל') return 'כל הספרים';
   return selectedCategory;
 }
 
@@ -26,13 +26,13 @@ export default function HomeScreen({ navigation }) {
   const { books, categories, loading, getFeaturedBooks, getBooksByCategory, searchBooks } =
     useBooks();
   const [query, setQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState('הכל');
 
-  const allCategories = ['All', ...categories];
+  const allCategories = ['הכל', ...categories];
 
   const displayedBooks = useMemo(() => {
     if (query.trim()) return searchBooks(query);
-    return getBooksByCategory(selectedCategory);
+    return getBooksByCategory(selectedCategory === 'הכל' ? 'All' : selectedCategory);
   }, [query, selectedCategory, books]);
 
   const featuredBooks = useMemo(() => getFeaturedBooks(), [books]);
@@ -60,8 +60,8 @@ export default function HomeScreen({ navigation }) {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Welcome back 📚</Text>
-            <Text style={styles.headerTitle}>Your Library</Text>
+            <Text style={styles.greeting}>ברוך הבא 📚</Text>
+            <Text style={styles.headerTitle}>הספרייה שלך</Text>
           </View>
           <TouchableOpacity
             style={styles.headerIcon}
@@ -83,7 +83,7 @@ export default function HomeScreen({ navigation }) {
         {/* Featured section (hidden when searching) */}
         {!query.trim() && featuredBooks.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>✨ Featured</Text>
+            <Text style={styles.sectionTitle}>✨ מומלצים</Text>
             <FlatList
               horizontal
               data={featuredBooks}
@@ -135,7 +135,7 @@ export default function HomeScreen({ navigation }) {
           {displayedBooks.length === 0 ? (
             <View style={styles.emptyState}>
               <Ionicons name="library-outline" size={56} color={COLORS.textMuted} />
-              <Text style={styles.emptyText}>No books found</Text>
+              <Text style={styles.emptyText}>לא נמצאו ספרים</Text>
             </View>
           ) : (
             <View style={styles.grid}>

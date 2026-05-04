@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONT_SIZES, SHADOWS } from '../theme';
 
 export default function BookmarkItem({ bookmark, bookTitle, onPress, onDelete }) {
-  const formattedDate = new Date(bookmark.date).toLocaleDateString('en-US', {
+  const formattedDate = new Date(bookmark.date).toLocaleDateString('he-IL', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -23,7 +23,7 @@ export default function BookmarkItem({ bookmark, bookTitle, onPress, onDelete })
 
       <View style={styles.content}>
         {bookTitle && <Text style={styles.bookTitle} numberOfLines={1}>{bookTitle}</Text>}
-        <Text style={styles.label}>Page {bookmark.page}</Text>
+        <Text style={styles.label}>עמוד {bookmark.page}</Text>
         {bookmark.note ? (
           <Text style={styles.note} numberOfLines={2}>
             {bookmark.note}

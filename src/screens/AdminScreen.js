@@ -85,17 +85,17 @@ export default function AdminScreen({ navigation }) {
       await FileSystem.copyAsync({ from: asset.uri, to: destUri });
       setForm((f) => ({ ...f, pdfUri: destUri, pdfName: asset.name }));
     } catch (e) {
-      Alert.alert('Error', 'Could not pick PDF.');
+      Alert.alert('שגיאה', 'לא ניתן לבחור קובץ PDF.');
     }
   };
 
   const handleSave = async () => {
     if (!form.title.trim()) {
-      Alert.alert('Validation', 'Title is required.');
+      Alert.alert('שגיאה', 'שדה הכותרת הוא חובה.');
       return;
     }
     if (!form.author.trim()) {
-      Alert.alert('Validation', 'Author is required.');
+      Alert.alert('שגיאה', 'שדה המחבר הוא חובה.');
       return;
     }
     setSaving(true);
@@ -118,7 +118,7 @@ export default function AdminScreen({ navigation }) {
       }
       setModalVisible(false);
     } catch (e) {
-      Alert.alert('Error', 'Failed to save book.');
+      Alert.alert('שגיאה', 'שמירת הספר נכשלה.');
     } finally {
       setSaving(false);
     }
@@ -126,12 +126,12 @@ export default function AdminScreen({ navigation }) {
 
   const handleDelete = (book) => {
     Alert.alert(
-      'Delete Book',
-      `Are you sure you want to delete "${book.title}"? All bookmarks for this book will also be removed.`,
+      'מחיקת ספר',
+      `האם אתה בטוח שברצונך למחוק את "${book.title}"? כל הסימניות לספר זה יוסרו גם כן.`,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: 'ביטול', style: 'cancel' },
         {
-          text: 'Delete',
+          text: 'מחיקה',
           style: 'destructive',
           onPress: async () => {
             await deleteAllBookmarksForBook(book.id);
@@ -158,7 +158,7 @@ export default function AdminScreen({ navigation }) {
         <Text style={styles.bookRowTitle} numberOfLines={1}>{item.title}</Text>
         <Text style={styles.bookRowAuthor} numberOfLines={1}>{item.author}</Text>
         <Text style={styles.bookRowMeta}>
-          {item.category}  ·  {item.pages} pages
+          {item.category}  ·  {item.pages} עמודים
           {item.pdfUri ? '  ·  📄 PDF' : ''}
         </Text>
       </View>
@@ -177,8 +177,8 @@ export default function AdminScreen({ navigation }) {
 
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>Admin Panel</Text>
-          <Text style={styles.headerSubtitle}>{books.length} books in library</Text>
+          <Text style={styles.headerTitle}>לוח ניהול</Text>
+          <Text style={styles.headerSubtitle}>{books.length} ספרים בספרייה</Text>
         </View>
         <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
           <Ionicons name="add" size={26} color={COLORS.white} />
@@ -195,7 +195,7 @@ export default function AdminScreen({ navigation }) {
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <Ionicons name="library-outline" size={56} color={COLORS.textMuted} />
-            <Text style={styles.emptyText}>No books yet. Add your first book!</Text>
+            <Text style={styles.emptyText}>אין ספרים עדיין. הוסף את הספר הראשון שלך!</Text>
           </View>
         }
       />
@@ -213,7 +213,7 @@ export default function AdminScreen({ navigation }) {
           <SafeAreaView style={styles.modalSafe}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                {editingBook ? 'Edit Book' : 'Add New Book'}
+                {editingBook ? 'עריכת ספר' : 'הוספת ספר חדש'}
               </Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
                 <Ionicons name="close" size={26} color={COLORS.text} />
@@ -227,72 +227,78 @@ export default function AdminScreen({ navigation }) {
               keyboardShouldPersistTaps="handled"
             >
               {/* Title */}
-              <Text style={styles.label}>Title *</Text>
+              <Text style={styles.label}>כותרת *</Text>
               <TextInput
                 style={styles.input}
                 value={form.title}
                 onChangeText={(v) => setForm((f) => ({ ...f, title: v }))}
-                placeholder="Book title"
+                placeholder="שם הספר"
                 placeholderTextColor={COLORS.textMuted}
+                textAlign="right"
               />
 
               {/* Author */}
-              <Text style={styles.label}>Author *</Text>
+              <Text style={styles.label}>מחבר *</Text>
               <TextInput
                 style={styles.input}
                 value={form.author}
                 onChangeText={(v) => setForm((f) => ({ ...f, author: v }))}
-                placeholder="Author name"
+                placeholder="שם המחבר"
                 placeholderTextColor={COLORS.textMuted}
+                textAlign="right"
               />
 
               {/* Description */}
-              <Text style={styles.label}>Description</Text>
+              <Text style={styles.label}>תיאור</Text>
               <TextInput
                 style={[styles.input, styles.multilineInput]}
                 value={form.description}
                 onChangeText={(v) => setForm((f) => ({ ...f, description: v }))}
-                placeholder="Short description..."
+                placeholder="תיאור קצר..."
                 placeholderTextColor={COLORS.textMuted}
                 multiline
                 numberOfLines={3}
                 textAlignVertical="top"
+                textAlign="right"
               />
 
               {/* Category */}
-              <Text style={styles.label}>Category</Text>
+              <Text style={styles.label}>קטגוריה</Text>
               <TextInput
                 style={styles.input}
                 value={form.category}
                 onChangeText={(v) => setForm((f) => ({ ...f, category: v }))}
-                placeholder="e.g. Fiction, Science..."
+                placeholder="למשל: מדע בדיוני, מדע..."
                 placeholderTextColor={COLORS.textMuted}
+                textAlign="right"
               />
 
               {/* Pages */}
-              <Text style={styles.label}>Number of Pages</Text>
+              <Text style={styles.label}>מספר עמודים</Text>
               <TextInput
                 style={styles.input}
                 value={form.pages}
                 onChangeText={(v) => setForm((f) => ({ ...f, pages: v }))}
-                placeholder="e.g. 320"
+                placeholder="למשל: 320"
                 placeholderTextColor={COLORS.textMuted}
                 keyboardType="number-pad"
+                textAlign="right"
               />
 
               {/* Rating */}
-              <Text style={styles.label}>Rating (0–5)</Text>
+              <Text style={styles.label}>דירוג (0–5)</Text>
               <TextInput
                 style={styles.input}
                 value={form.rating}
                 onChangeText={(v) => setForm((f) => ({ ...f, rating: v }))}
-                placeholder="e.g. 4.5"
+                placeholder="למשל: 4.5"
                 placeholderTextColor={COLORS.textMuted}
                 keyboardType="decimal-pad"
+                textAlign="right"
               />
 
               {/* Cover color */}
-              <Text style={styles.label}>Cover Color</Text>
+              <Text style={styles.label}>צבע עטיפה</Text>
               <View style={styles.colorRow}>
                 {COVER_COLORS.map((color) => (
                   <TouchableOpacity
@@ -308,7 +314,7 @@ export default function AdminScreen({ navigation }) {
               </View>
 
               {/* PDF picker */}
-              <Text style={styles.label}>PDF File</Text>
+              <Text style={styles.label}>קובץ PDF</Text>
               <TouchableOpacity style={styles.pdfPickerBtn} onPress={handlePickPdf}>
                 <Ionicons
                   name={form.pdfUri ? 'document-text' : 'folder-open-outline'}
@@ -322,7 +328,7 @@ export default function AdminScreen({ navigation }) {
                   ]}
                   numberOfLines={1}
                 >
-                  {form.pdfName || 'Choose PDF File...'}
+                  {form.pdfName || 'בחר קובץ PDF...'}
                 </Text>
                 {form.pdfUri && (
                   <TouchableOpacity
@@ -346,7 +352,7 @@ export default function AdminScreen({ navigation }) {
                   <>
                     <Ionicons name="checkmark-circle-outline" size={22} color={COLORS.white} />
                     <Text style={styles.saveBtnText}>
-                      {editingBook ? 'Save Changes' : 'Add Book'}
+                      {editingBook ? 'שמור שינויים' : 'הוסף ספר'}
                     </Text>
                   </>
                 )}

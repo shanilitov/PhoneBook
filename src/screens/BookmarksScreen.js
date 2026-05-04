@@ -26,7 +26,7 @@ export default function BookmarksScreen({ navigation }) {
       const book = getBook(bookId);
       result.push({
         bookId,
-        bookTitle: book?.title || 'Unknown Book',
+        bookTitle: book?.title || 'ספר לא ידוע',
         coverColor: book?.coverColor || COLORS.primary,
         data: [...list].sort((a, b) => a.page - b.page),
       });
@@ -40,10 +40,10 @@ export default function BookmarksScreen({ navigation }) {
   );
 
   const handleDelete = (bookId, bm) => {
-    Alert.alert('Delete Bookmark', `Remove bookmark for page ${bm.page}?`, [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert('מחיקת סימנייה', `להסיר סימנייה לעמוד ${bm.page}?`, [
+      { text: 'ביטול', style: 'cancel' },
       {
-        text: 'Delete',
+        text: 'מחיקה',
         style: 'destructive',
         onPress: () => deleteBookmark(bookId, bm.id),
       },
@@ -61,16 +61,16 @@ export default function BookmarksScreen({ navigation }) {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Bookmarks</Text>
-        <Text style={styles.headerCount}>{totalCount} total</Text>
+        <Text style={styles.headerTitle}>סימניות</Text>
+        <Text style={styles.headerCount}>{totalCount} סה״כ</Text>
       </View>
 
       {sections.length === 0 ? (
         <View style={styles.emptyState}>
           <Ionicons name="bookmarks-outline" size={72} color={COLORS.textMuted} />
-          <Text style={styles.emptyTitle}>No Bookmarks Yet</Text>
+          <Text style={styles.emptyTitle}>אין סימניות עדיין</Text>
           <Text style={styles.emptySubtitle}>
-            Open a book and tap the bookmark icon{'\n'}to save pages for later
+            פתח ספר ולחץ על סמל הסימנייה{'\n'}כדי לשמור עמודים לאחר מכן
           </Text>
         </View>
       ) : (

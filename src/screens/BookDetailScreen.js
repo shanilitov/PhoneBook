@@ -7,6 +7,7 @@ import {
   StyleSheet,
   StatusBar,
   Alert,
+  I18nManager,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useBooks } from '../context/BooksContext';
@@ -35,7 +36,7 @@ export default function BookDetailScreen({ route, navigation }) {
   if (!book) {
     return (
       <View style={styles.center}>
-        <Text style={styles.errorText}>Book not found.</Text>
+        <Text style={styles.errorText}>הספר לא נמצא.</Text>
       </View>
     );
   }
@@ -45,10 +46,10 @@ export default function BookDetailScreen({ route, navigation }) {
   };
 
   const handleDeleteBookmark = (bm) => {
-    Alert.alert('Delete Bookmark', `Remove bookmark for page ${bm.page}?`, [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert('מחיקת סימנייה', `להסיר סימנייה לעמוד ${bm.page}?`, [
+      { text: 'ביטול', style: 'cancel' },
       {
-        text: 'Delete',
+        text: 'מחיקה',
         style: 'destructive',
         onPress: () => deleteBookmark(bookId, bm.id),
       },
@@ -69,7 +70,7 @@ export default function BookDetailScreen({ route, navigation }) {
           style={styles.backBtn}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="arrow-back" size={24} color={COLORS.white} />
+          <Ionicons name={I18nManager.isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={COLORS.white} />
         </TouchableOpacity>
         <Text style={styles.heroInitials}>{initials}</Text>
       </View>
@@ -82,7 +83,7 @@ export default function BookDetailScreen({ route, navigation }) {
         {/* Book meta */}
         <View style={styles.metaCard}>
           <Text style={styles.title}>{book.title}</Text>
-          <Text style={styles.author}>by {book.author}</Text>
+          <Text style={styles.author}>מאת {book.author}</Text>
 
           <View style={styles.tagsRow}>
             <View style={styles.tag}>
@@ -91,7 +92,7 @@ export default function BookDetailScreen({ route, navigation }) {
             </View>
             <View style={styles.tag}>
               <Ionicons name="document-text-outline" size={13} color={COLORS.accentGreen} />
-              <Text style={styles.tagText}>{book.pages} pages</Text>
+              <Text style={styles.tagText}>{book.pages} עמודים</Text>
             </View>
             {book.rating > 0 && (
               <View style={styles.tag}>
@@ -114,7 +115,7 @@ export default function BookDetailScreen({ route, navigation }) {
         >
           <Ionicons name="book-outline" size={22} color={COLORS.white} />
           <Text style={styles.readBtnText}>
-            {book.pdfUri ? 'Read Book' : 'Open Reader'}
+            {book.pdfUri ? 'קרא ספר' : 'פתח קורא'}
           </Text>
         </TouchableOpacity>
 
@@ -122,7 +123,7 @@ export default function BookDetailScreen({ route, navigation }) {
         <View style={styles.bookmarksSection}>
           <View style={styles.bookmarkHeader}>
             <Text style={styles.sectionTitle}>
-              Bookmarks
+              סימניות
               {bookmarks.length > 0 && (
                 <Text style={styles.countBadge}>  {bookmarks.length}</Text>
               )}
@@ -132,9 +133,9 @@ export default function BookDetailScreen({ route, navigation }) {
           {bookmarks.length === 0 ? (
             <View style={styles.emptyBookmarks}>
               <Ionicons name="bookmark-outline" size={40} color={COLORS.textMuted} />
-              <Text style={styles.emptyText}>No bookmarks yet</Text>
+              <Text style={styles.emptyText}>אין סימניות עדיין</Text>
               <Text style={styles.emptySubText}>
-                Tap the bookmark icon while reading to save a page
+                לחץ על סמל הסימנייה בזמן הקריאה כדי לשמור עמוד
               </Text>
             </View>
           ) : (
