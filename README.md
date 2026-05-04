@@ -2,6 +2,16 @@
 
 A mobile application for reading books on your phone — built with React Native & Expo.
 
+## Screenshots
+
+| ספרייה (Home) | פרטי ספר (Book Detail) | קורא PDF (Reader) |
+|:---:|:---:|:---:|
+| ![Home Screen](assets/screenshots/home.png) | ![Book Detail](assets/screenshots/book_detail.png) | ![Reader](assets/screenshots/reader.png) |
+
+| סימניות (Bookmarks) | לוח ניהול (Admin) | הוספת ספר (Add Book) |
+|:---:|:---:|:---:|
+| ![Bookmarks](assets/screenshots/bookmarks.png) | ![Admin](assets/screenshots/admin.png) | ![Add Book Modal](assets/screenshots/admin_modal.png) |
+
 ## Features
 
 | Feature | Description |
