@@ -16,6 +16,10 @@ on:
           - ios
           - all
 
+# Restrict default GITHUB_TOKEN permissions to the minimum required
+permissions:
+  contents: read
+
 # Cancel any in-progress demo build for the same ref so we never queue up stale builds
 concurrency:
   group: demo-${{ github.ref }}
@@ -63,7 +67,7 @@ jobs:
           echo "build_id=${BUILD_URL}" >> "$GITHUB_OUTPUT"
           echo "### 🤖 Android Preview Build" >> "$GITHUB_STEP_SUMMARY"
           echo "Build ID: \`${BUILD_URL}\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "Track progress: https://expo.dev/accounts/[account]/projects/phonebook/builds/${BUILD_URL}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Track progress: https://expo.dev/builds/${BUILD_URL}" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Build preview (iOS)
         if: inputs.platform == 'ios' || inputs.platform == 'all'
@@ -78,7 +82,7 @@ jobs:
           echo "build_id=${BUILD_URL}" >> "$GITHUB_OUTPUT"
           echo "### 🍎 iOS Preview Build" >> "$GITHUB_STEP_SUMMARY"
           echo "Build ID: \`${BUILD_URL}\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "Track progress: https://expo.dev/accounts/[account]/projects/phonebook/builds/${BUILD_URL}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Track progress: https://expo.dev/builds/${BUILD_URL}" >> "$GITHUB_STEP_SUMMARY"
 
       # ─── Summary ─────────────────────────────────────────────────
       - name: Job summary
