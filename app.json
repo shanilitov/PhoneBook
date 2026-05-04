@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "PhoneBook",
+    "slug": "phonebook",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1a1a2e"
+    },
+    "updates": {
+      "enabled": true
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.phonebook.app",
+      "jsEngine": "hermes"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1a1a2e"
+      },
+      "package": "com.phonebook.app",
+      "targetSdkVersion": 34,
+      "jsEngine": "hermes"
+    },
+    "plugins": [
+      "expo-document-picker"
+    ]
+  }
+}
