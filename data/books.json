@@ -1,0 +1,82 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2024-01-15T00:00:00Z",
+  "categories": ["Fiction", "Non-Fiction", "Science", "History", "Technology", "Self-Help"],
+  "books": [
+    {
+      "id": "1",
+      "title": "The Great Adventure",
+      "author": "John Smith",
+      "description": "An epic journey through uncharted territories. This book follows the adventures of a brave explorer who dares to venture where no one has gone before. Full of twists, discoveries and personal growth.",
+      "coverColor": "#6C63FF",
+      "category": "Fiction",
+      "pages": 320,
+      "language": "en",
+      "addedDate": "2024-01-01T00:00:00Z",
+      "pdfUri": null,
+      "isLocal": false,
+      "rating": 4.5,
+      "featured": true
+    },
+    {
+      "id": "2",
+      "title": "Science of Everything",
+      "author": "Dr. Jane Doe",
+      "description": "A comprehensive guide to understanding the universe around us. From quantum mechanics to cosmology, this book breaks down complex topics into digestible explanations for the curious mind.",
+      "coverColor": "#FF6584",
+      "category": "Science",
+      "pages": 450,
+      "language": "en",
+      "addedDate": "2024-01-05T00:00:00Z",
+      "pdfUri": null,
+      "isLocal": false,
+      "rating": 4.8,
+      "featured": false
+    },
+    {
+      "id": "3",
+      "title": "History of Civilization",
+      "author": "Prof. Robert Johnson",
+      "description": "Tracing the path of human civilization from ancient times to the modern era. A sweeping narrative that connects the dots between cultures, empires and the great turning points of human history.",
+      "coverColor": "#43B89C",
+      "category": "History",
+      "pages": 680,
+      "language": "en",
+      "addedDate": "2024-01-10T00:00:00Z",
+      "pdfUri": null,
+      "isLocal": false,
+      "rating": 4.2,
+      "featured": true
+    },
+    {
+      "id": "4",
+      "title": "The Art of Technology",
+      "author": "Alice Chen",
+      "description": "How technology shapes creativity and human expression. Explores the intersection of art, design and digital innovation from the perspective of leading practitioners and thinkers.",
+      "coverColor": "#F7B731",
+      "category": "Technology",
+      "pages": 280,
+      "language": "en",
+      "addedDate": "2024-01-12T00:00:00Z",
+      "pdfUri": null,
+      "isLocal": false,
+      "rating": 4.0,
+      "featured": false
+    },
+    {
+      "id": "5",
+      "title": "Mindful Living",
+      "author": "Sarah Williams",
+      "description": "A practical guide to mindfulness and well-being. Learn techniques rooted in ancient wisdom and backed by modern science to reduce stress, improve focus and live a more fulfilling life.",
+      "coverColor": "#26de81",
+      "category": "Self-Help",
+      "pages": 210,
+      "language": "en",
+      "addedDate": "2024-01-14T00:00:00Z",
+      "pdfUri": null,
+      "isLocal": false,
+      "rating": 4.6,
+      "featured": true
+    }
+  ]
+}
