@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   StyleSheet,
   StatusBar,
   Alert,
+  ActivityIndicator,
   I18nManager,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,11 +18,14 @@ import { COLORS, SPACING, RADIUS, FONT_SIZES, SHADOWS } from '../theme';
 
 export default function BookDetailScreen({ route, navigation }) {
   const { bookId } = route.params;
-  const { getBook } = useBooks();
+  const { getBook, downloadPdf, cancelDownload, downloadProgress } = useBooks();
   const { getBookmarks, deleteBookmark } = useBookmarks();
 
   const book = getBook(bookId);
   const bookmarks = getBookmarks(bookId);
+  const [downloading, setDownloading] = useState(false);
+
+  const dlProgress = downloadProgress[bookId] ?? null;
 
   const initials = useMemo(() => {
     if (!book) return '?';
@@ -44,6 +48,22 @@ export default function BookDetailScreen({ route, navigation }) {
   const handleRead = () => {
     navigation.navigate('Reader', { bookId: book.id });
   };
+
+  const handleDownload = useCallback(async () => {
+    setDownloading(true);
+    try {
+      await downloadPdf(book.id);
+    } catch (e) {
+      Alert.alert('שגיאה', 'הורדת ה-PDF נכשלה. בדוק חיבור לאינטרנט.');
+    } finally {
+      setDownloading(false);
+    }
+  }, [book, downloadPdf]);
+
+  const handleCancelDownload = useCallback(async () => {
+    await cancelDownload(book.id);
+    setDownloading(false);
+  }, [book, cancelDownload]);
 
   const handleDeleteBookmark = (bm) => {
     Alert.alert('מחיקת סימנייה', `להסיר סימנייה לעמוד ${bm.page}?`, [
@@ -118,6 +138,40 @@ export default function BookDetailScreen({ route, navigation }) {
             {book.pdfUri ? 'קרא ספר' : 'פתח קורא'}
           </Text>
         </TouchableOpacity>
+
+        {/* Download section — shown only when book has a remote URL */}
+        {book.remoteUrl && (
+          <View style={styles.downloadSection}>
+            {book.pdfUri ? (
+              <View style={styles.downloadedRow}>
+                <Ionicons name="checkmark-circle" size={18} color={COLORS.accentGreen} />
+                <Text style={styles.downloadedText}>הספר מורד ושמור במכשיר</Text>
+              </View>
+            ) : downloading ? (
+              <View style={styles.downloadingRow}>
+                <ActivityIndicator size="small" color={COLORS.primary} />
+                <Text style={styles.downloadingText}>
+                  {dlProgress !== null
+                    ? `מוריד... ${Math.round(dlProgress * 100)}%`
+                    : 'מוריד...'}
+                </Text>
+                <TouchableOpacity onPress={handleCancelDownload}>
+                  <Ionicons name="close-circle-outline" size={20} color={COLORS.textMuted} />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity style={styles.downloadBtn} onPress={handleDownload}>
+                <Ionicons name="cloud-download-outline" size={20} color={COLORS.primary} />
+                <Text style={styles.downloadBtnText}>הורד לקריאה אופליין</Text>
+              </TouchableOpacity>
+            )}
+            {downloading && dlProgress !== null && (
+              <View style={styles.downloadTrack}>
+                <View style={[styles.downloadFill, { width: `${Math.round(dlProgress * 100)}%` }]} />
+              </View>
+            )}
+          </View>
+        )}
 
         {/* Bookmarks */}
         <View style={styles.bookmarksSection}>
@@ -290,5 +344,57 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: SPACING.xs,
     lineHeight: 20,
+  },
+  downloadSection: {
+    marginHorizontal: SPACING.base,
+    marginBottom: SPACING.xl,
+    backgroundColor: COLORS.backgroundCard,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.base,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    ...SHADOWS.sm,
+  },
+  downloadedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  downloadedText: {
+    fontSize: FONT_SIZES.sm,
+    color: COLORS.accentGreen,
+    fontWeight: '600',
+  },
+  downloadBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  downloadBtnText: {
+    fontSize: FONT_SIZES.base,
+    color: COLORS.primary,
+    fontWeight: '600',
+  },
+  downloadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  downloadingText: {
+    flex: 1,
+    fontSize: FONT_SIZES.sm,
+    color: COLORS.textSecondary,
+  },
+  downloadTrack: {
+    height: 4,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.full,
+    overflow: 'hidden',
+    marginTop: SPACING.sm,
+  },
+  downloadFill: {
+    height: 4,
+    backgroundColor: COLORS.primary,
+    borderRadius: RADIUS.full,
   },
 });

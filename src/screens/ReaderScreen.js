@@ -22,7 +22,7 @@ import { COLORS, SPACING, RADIUS, FONT_SIZES, SHADOWS } from '../theme';
 
 export default function ReaderScreen({ route, navigation }) {
   const { bookId, initialPage = 1 } = route.params;
-  const { getBook, updateBook } = useBooks();
+  const { getBook, updateBook, downloadPdf, cancelDownload, downloadProgress } = useBooks();
   const { addBookmark, isPageBookmarked, deleteBookmark, getBookmarks } = useBookmarks();
 
   const book = getBook(bookId);
@@ -36,10 +36,30 @@ export default function ReaderScreen({ route, navigation }) {
     book?.pdfUri ? { uri: book.pdfUri, cache: true } : null
   );
   const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const pdfRef = useRef(null);
 
+  const progress = downloadProgress[bookId] ?? null;
+
   const pageBookmarked = isPageBookmarked(bookId, currentPage);
-  const progress = totalPages > 0 ? currentPage / totalPages : 0;
+  const readProgress = totalPages > 0 ? currentPage / totalPages : 0;
+
+  const handleDownload = useCallback(async () => {
+    setDownloading(true);
+    try {
+      const localUri = await downloadPdf(bookId);
+      setPdfSource({ uri: localUri, cache: true });
+    } catch (e) {
+      Alert.alert('שגיאה', 'הורדת ה-PDF נכשלה. בדוק חיבור לאינטרנט.');
+    } finally {
+      setDownloading(false);
+    }
+  }, [bookId, downloadPdf]);
+
+  const handleCancelDownload = useCallback(async () => {
+    await cancelDownload(bookId);
+    setDownloading(false);
+  }, [bookId, cancelDownload]);
 
   const pickPdf = useCallback(async () => {
     try {
@@ -94,7 +114,7 @@ export default function ReaderScreen({ route, navigation }) {
     );
   }
 
-  // No PDF loaded yet — show picker placeholder
+  // No PDF loaded yet — show download / picker placeholder
   if (!pdfSource) {
     return (
       <View style={styles.noPdfContainer}>
@@ -106,10 +126,39 @@ export default function ReaderScreen({ route, navigation }) {
           <Ionicons name="document-outline" size={80} color={COLORS.textMuted} />
           <Text style={styles.noPdfTitle}>{book.title}</Text>
           <Text style={styles.noPdfSubtitle}>אין קובץ PDF מצורף לספר זה.</Text>
-          <TouchableOpacity style={styles.pickBtn} onPress={pickPdf}>
-            <Ionicons name="folder-open-outline" size={22} color={COLORS.white} />
-            <Text style={styles.pickBtnText}>בחר קובץ PDF</Text>
-          </TouchableOpacity>
+
+          {book.remoteUrl ? (
+            // Remote PDF available — show download button
+            downloading ? (
+              <View style={styles.downloadingBlock}>
+                <ActivityIndicator size="small" color={COLORS.primary} />
+                <Text style={styles.downloadingText}>
+                  {progress !== null
+                    ? `מוריד... ${Math.round(progress * 100)}%`
+                    : 'מוריד...'}
+                </Text>
+                {progress !== null && (
+                  <View style={styles.downloadTrack}>
+                    <View style={[styles.downloadFill, { width: `${Math.round(progress * 100)}%` }]} />
+                  </View>
+                )}
+                <TouchableOpacity style={styles.cancelBtn} onPress={handleCancelDownload}>
+                  <Text style={styles.cancelBtnText}>ביטול</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity style={styles.pickBtn} onPress={handleDownload}>
+                <Ionicons name="cloud-download-outline" size={22} color={COLORS.white} />
+                <Text style={styles.pickBtnText}>הורד ספר</Text>
+              </TouchableOpacity>
+            )
+          ) : (
+            // No remote URL — manual file picker
+            <TouchableOpacity style={styles.pickBtn} onPress={pickPdf}>
+              <Ionicons name="folder-open-outline" size={22} color={COLORS.white} />
+              <Text style={styles.pickBtnText}>בחר קובץ PDF</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     );
@@ -184,7 +233,7 @@ export default function ReaderScreen({ route, navigation }) {
 
           {/* Progress bar */}
           <View style={styles.progressBarTrack}>
-            <View style={[styles.progressBarFill, { width: `${progress * 100}%` }]} />
+            <View style={[styles.progressBarFill, { width: `${readProgress * 100}%` }]} />
           </View>
 
           {/* Bottom bar */}
@@ -408,6 +457,42 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.base,
     fontWeight: '700',
     color: COLORS.white,
+  },
+  downloadingBlock: {
+    alignItems: 'center',
+    marginTop: SPACING.xl,
+    width: '100%',
+  },
+  downloadingText: {
+    color: COLORS.textSecondary,
+    fontSize: FONT_SIZES.base,
+    marginTop: SPACING.sm,
+    marginBottom: SPACING.sm,
+  },
+  downloadTrack: {
+    width: '80%',
+    height: 6,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.full,
+    overflow: 'hidden',
+    marginBottom: SPACING.base,
+  },
+  downloadFill: {
+    height: 6,
+    backgroundColor: COLORS.primary,
+    borderRadius: RADIUS.full,
+  },
+  cancelBtn: {
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.sm,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  cancelBtnText: {
+    color: COLORS.textSecondary,
+    fontSize: FONT_SIZES.base,
+    fontWeight: '600',
   },
   // Modal
   modalOverlay: {

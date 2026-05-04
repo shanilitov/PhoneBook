@@ -36,6 +36,7 @@ const EMPTY_FORM = {
   coverColor: COVER_COLORS[0],
   pdfUri: null,
   pdfName: null,
+  remoteUrl: '',
   rating: '',
 };
 
@@ -65,6 +66,7 @@ export default function AdminScreen({ navigation }) {
       coverColor: book.coverColor || COVER_COLORS[0],
       pdfUri: book.pdfUri || null,
       pdfName: book.pdfUri ? 'Current PDF' : null,
+      remoteUrl: book.remoteUrl || '',
       rating: book.rating?.toString() || '',
     });
     setModalVisible(true);
@@ -108,6 +110,7 @@ export default function AdminScreen({ navigation }) {
         pages: parseInt(form.pages, 10) || 0,
         coverColor: form.coverColor,
         pdfUri: form.pdfUri || null,
+        remoteUrl: form.remoteUrl.trim() || null,
         isLocal: !!form.pdfUri,
         rating: parseFloat(form.rating) || 0,
       };
@@ -160,6 +163,7 @@ export default function AdminScreen({ navigation }) {
         <Text style={styles.bookRowMeta}>
           {item.category}  ·  {item.pages} עמודים
           {item.pdfUri ? '  ·  📄 PDF' : ''}
+          {item.remoteUrl && !item.pdfUri ? '  ·  ☁️ Remote' : ''}
         </Text>
       </View>
       <TouchableOpacity style={styles.iconBtn} onPress={() => openEditModal(item)}>
@@ -339,6 +343,19 @@ export default function AdminScreen({ navigation }) {
                   </TouchableOpacity>
                 )}
               </TouchableOpacity>
+
+              {/* Remote URL */}
+              <Text style={styles.label}>קישור הורדה (URL)</Text>
+              <TextInput
+                style={styles.input}
+                value={form.remoteUrl}
+                onChangeText={(v) => setForm((f) => ({ ...f, remoteUrl: v }))}
+                placeholder="https://example.com/book.pdf"
+                placeholderTextColor={COLORS.textMuted}
+                autoCapitalize="none"
+                keyboardType="url"
+                textAlign="right"
+              />
 
               {/* Save */}
               <TouchableOpacity

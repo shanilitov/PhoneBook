@@ -1,15 +1,19 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
 import defaultBooks from '../../data/books.json';
 
 const STORAGE_KEY = '@phonebook_books';
+const PDFS_DIR = FileSystem.documentDirectory + 'pdfs/';
 const BooksContext = createContext(null);
 
 export function BooksProvider({ children }) {
   const [books, setBooks] = useState([]);
   const [categories, setCategories] = useState(defaultBooks.categories);
   const [loading, setLoading] = useState(true);
+  // Map of bookId -> download progress (0–1), or null if not downloading
+  const [downloadProgress, setDownloadProgress] = useState({});
+  const downloadResumables = useRef({});
 
   // Load books: merge JSON defaults with any admin-added books from AsyncStorage
   useEffect(() => {
@@ -93,6 +97,77 @@ export function BooksProvider({ children }) {
 
   const getBook = useCallback((id) => books.find((b) => b.id === id) || null, [books]);
 
+  /**
+   * Download a book's PDF from book.remoteUrl, cache it in the app documents
+   * directory, and persist the local path in book.pdfUri.
+   * Returns the local URI on success, or throws on failure.
+   */
+  const downloadPdf = useCallback(
+    async (id) => {
+      const book = books.find((b) => b.id === id);
+      if (!book) throw new Error('ספר לא נמצא');
+      if (!book.remoteUrl) throw new Error('אין כתובת הורדה לספר זה');
+      // Return cached local file if it already exists
+      if (book.pdfUri) {
+        const info = await FileSystem.getInfoAsync(book.pdfUri);
+        if (info.exists) return book.pdfUri;
+      }
+      await FileSystem.makeDirectoryAsync(PDFS_DIR, { intermediates: true });
+      const destUri = PDFS_DIR + `book_${id}.pdf`;
+      setDownloadProgress((prev) => ({ ...prev, [id]: 0 }));
+      const resumable = FileSystem.createDownloadResumable(
+        book.remoteUrl,
+        destUri,
+        {},
+        ({ totalBytesWritten, totalBytesExpectedToWrite }) => {
+          if (totalBytesExpectedToWrite > 0) {
+            setDownloadProgress((prev) => ({
+              ...prev,
+              [id]: totalBytesWritten / totalBytesExpectedToWrite,
+            }));
+          }
+        }
+      );
+      downloadResumables.current[id] = resumable;
+      try {
+        const result = await resumable.downloadAsync();
+        const localUri = result?.uri || destUri;
+        await updateBook(id, { pdfUri: localUri, isLocal: true });
+        return localUri;
+      } finally {
+        delete downloadResumables.current[id];
+        setDownloadProgress((prev) => {
+          const next = { ...prev };
+          delete next[id];
+          return next;
+        });
+      }
+    },
+    [books, updateBook]
+  );
+
+  /** Cancel an in-progress download */
+  const cancelDownload = useCallback(async (id) => {
+    const resumable = downloadResumables.current[id];
+    if (resumable) {
+      try {
+        await resumable.pauseAsync();
+        const info = await FileSystem.getInfoAsync(PDFS_DIR + `book_${id}.pdf`);
+        if (info.exists) {
+          await FileSystem.deleteAsync(PDFS_DIR + `book_${id}.pdf`, { idempotent: true });
+        }
+      } catch (_) {
+        // non-fatal
+      }
+      delete downloadResumables.current[id];
+    }
+    setDownloadProgress((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+  }, []);
+
   const getFeaturedBooks = useCallback(() => books.filter((b) => b.featured), [books]);
 
   const getBooksByCategory = useCallback(
@@ -123,6 +198,9 @@ export function BooksProvider({ children }) {
         addBook,
         updateBook,
         deleteBook,
+        downloadPdf,
+        cancelDownload,
+        downloadProgress,
         getBook,
         getFeaturedBooks,
         getBooksByCategory,
