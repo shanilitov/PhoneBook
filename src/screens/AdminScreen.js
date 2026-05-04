@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -21,6 +22,40 @@ import { Ionicons } from '@expo/vector-icons';
 import { useBooks } from '../context/BooksContext';
 import { useBookmarks } from '../context/BookmarksContext';
 import { COLORS, SPACING, RADIUS, FONT_SIZES, SHADOWS } from '../theme';
+
+const ADMIN_PIN_KEY = '@phonebook_admin_pin';
+const PIN_LENGTH = 4;
+
+function getPinSubtitle(step) {
+  switch (step) {
+    case 'setup_new':
+      return 'הגדר קוד PIN חדש בן 4 ספרות לגישה ללוח הניהול.';
+    case 'setup_confirm':
+      return 'הזן שוב את קוד ה-PIN לאישור.';
+    case 'change_current':
+      return 'הזן את קוד ה-PIN הנוכחי.';
+    case 'change_new':
+      return 'הזן קוד PIN חדש בן 4 ספרות.';
+    case 'change_confirm':
+      return 'הזן שוב את קוד ה-PIN החדש לאישור.';
+    default:
+      return 'הזן קוד PIN לגישה ללוח הניהול.';
+  }
+}
+
+function getPinActionLabel(step) {
+  switch (step) {
+    case 'setup_new':
+    case 'change_new':
+    case 'change_current':
+      return 'המשך';
+    case 'setup_confirm':
+    case 'change_confirm':
+      return 'אשר';
+    default:
+      return 'כניסה';
+  }
+}
 
 const COVER_COLORS = [
   '#6C63FF', '#FF6584', '#43B89C', '#F7B731', '#26de81',
@@ -48,6 +83,129 @@ export default function AdminScreen({ navigation }) {
   const [editingBook, setEditingBook] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+
+  // PIN authentication state
+  const [pinChecked, setPinChecked] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [storedPin, setStoredPin] = useState(null);
+  const [pinStep, setPinStep] = useState('enter');
+  const [pinInput, setPinInput] = useState('');
+  const [pendingPin, setPendingPin] = useState('');
+  const [pinError, setPinError] = useState('');
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const pin = await AsyncStorage.getItem(ADMIN_PIN_KEY);
+        setStoredPin(pin);
+        setPinStep(pin ? 'enter' : 'setup_new');
+      } catch (e) {
+        console.error('Failed to read admin PIN from storage:', e);
+        setPinStep('setup_new');
+      } finally {
+        setPinChecked(true);
+      }
+    })();
+  }, []);
+
+  const handlePinAction = async () => {
+    setPinError('');
+    const enteredPin = pinInput;
+    if (pinStep === 'enter') {
+      if (enteredPin === storedPin) {
+        setIsAuthenticated(true);
+        setPinInput('');
+      } else {
+        setPinError('קוד PIN שגוי. נסה שוב.');
+        setPinInput('');
+      }
+    } else if (pinStep === 'setup_new') {
+      if (enteredPin.length < PIN_LENGTH) {
+        setPinError(`קוד PIN חייב להכיל ${PIN_LENGTH} ספרות.`);
+        return;
+      }
+      setPendingPin(enteredPin);
+      setPinInput('');
+      setPinStep('setup_confirm');
+    } else if (pinStep === 'setup_confirm') {
+      if (enteredPin !== pendingPin) {
+        setPinError('קודי ה-PIN אינם תואמים. נסה שוב.');
+        setPinInput('');
+        setPendingPin('');
+        setPinStep('setup_new');
+        return;
+      }
+      try {
+        await AsyncStorage.setItem(ADMIN_PIN_KEY, enteredPin);
+        setStoredPin(enteredPin);
+        setIsAuthenticated(true);
+        setPinInput('');
+        setPendingPin('');
+      } catch (e) {
+        console.error('Failed to save admin PIN:', e);
+        setPinError('שגיאה בשמירת קוד ה-PIN.');
+      }
+    } else if (pinStep === 'change_current') {
+      if (enteredPin !== storedPin) {
+        setPinError('קוד PIN שגוי.');
+        setPinInput('');
+        return;
+      }
+      setPinInput('');
+      setPinStep('change_new');
+    } else if (pinStep === 'change_new') {
+      if (enteredPin.length < PIN_LENGTH) {
+        setPinError(`קוד PIN חייב להכיל ${PIN_LENGTH} ספרות.`);
+        return;
+      }
+      setPendingPin(enteredPin);
+      setPinInput('');
+      setPinStep('change_confirm');
+    } else if (pinStep === 'change_confirm') {
+      if (enteredPin !== pendingPin) {
+        setPinError('קודי ה-PIN אינם תואמים. נסה שוב.');
+        setPinInput('');
+        setPendingPin('');
+        setPinStep('change_new');
+        return;
+      }
+      try {
+        await AsyncStorage.setItem(ADMIN_PIN_KEY, enteredPin);
+        setStoredPin(enteredPin);
+        setIsAuthenticated(true);
+        setPinInput('');
+        setPendingPin('');
+        setPinStep('enter');
+        Alert.alert('הצלחה', 'קוד ה-PIN עודכן בהצלחה.');
+      } catch (e) {
+        console.error('Failed to update admin PIN:', e);
+        setPinError('שגיאה בשמירת קוד ה-PIN.');
+      }
+    }
+  };
+
+  const handleLock = () => {
+    setIsAuthenticated(false);
+    setPinInput('');
+    setPinError('');
+    setPinStep('enter');
+  };
+
+  const startChangePin = () => {
+    setPinInput('');
+    setPinError('');
+    setPendingPin('');
+    setPinStep('change_current');
+    setIsAuthenticated(false);
+  };
+
+  const handleCancelPin = () => {
+    setIsAuthenticated(true);
+    setPinInput('');
+    setPinError('');
+    setPendingPin('');
+    setPinStep('enter');
+  };
 
   const openAddModal = () => {
     setEditingBook(null);
@@ -99,6 +257,33 @@ export default function AdminScreen({ navigation }) {
     if (!form.author.trim()) {
       Alert.alert('שגיאה', 'שדה המחבר הוא חובה.');
       return;
+    }
+    if (form.rating.trim()) {
+      const ratingVal = parseFloat(form.rating);
+      if (isNaN(ratingVal) || ratingVal < 0 || ratingVal > 5) {
+        Alert.alert('שגיאה', 'הדירוג חייב להיות מספר בין 0 ל-5.');
+        return;
+      }
+    }
+    if (form.pages.trim()) {
+      const pagesVal = parseInt(form.pages, 10);
+      if (isNaN(pagesVal) || pagesVal < 0 || pagesVal > 50000) {
+        Alert.alert('שגיאה', 'מספר העמודים אינו תקין.');
+        return;
+      }
+    }
+    if (form.remoteUrl.trim()) {
+      let parsedUrl;
+      try {
+        parsedUrl = new URL(form.remoteUrl.trim());
+      } catch {
+        Alert.alert('שגיאה', 'קישור ההורדה אינו תקין.');
+        return;
+      }
+      if (parsedUrl.protocol !== 'https:') {
+        Alert.alert('שגיאה', 'קישור ההורדה חייב להשתמש ב-HTTPS בלבד.');
+        return;
+      }
     }
     setSaving(true);
     try {
@@ -175,6 +360,61 @@ export default function AdminScreen({ navigation }) {
     </View>
   );
 
+  if (!pinChecked) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
+
+  if (!isAuthenticated) {
+    const isChangeFlow = pinStep.startsWith('change_');
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          <View style={styles.pinContainer}>
+            <Ionicons name="lock-closed" size={64} color={COLORS.primary} />
+            <Text style={styles.pinTitle}>לוח ניהול</Text>
+            <Text style={styles.pinSubtitle}>{getPinSubtitle(pinStep)}</Text>
+            <TextInput
+              style={styles.pinInput}
+              value={pinInput}
+              onChangeText={(v) => {
+                setPinInput(v.replace(/\D/g, '').slice(0, PIN_LENGTH));
+                setPinError('');
+              }}
+              placeholder="• • • •"
+              placeholderTextColor={COLORS.textMuted}
+              keyboardType="number-pad"
+              maxLength={PIN_LENGTH}
+              secureTextEntry
+              textAlign="center"
+              autoFocus
+            />
+            {!!pinError && <Text style={styles.pinError}>{pinError}</Text>}
+            <TouchableOpacity
+              style={[styles.pinSubmitBtn, pinInput.length < PIN_LENGTH && styles.pinSubmitBtnDisabled]}
+              onPress={handlePinAction}
+              disabled={pinInput.length < PIN_LENGTH}
+            >
+              <Text style={styles.pinSubmitText}>{getPinActionLabel(pinStep)}</Text>
+            </TouchableOpacity>
+            {isChangeFlow && (
+              <TouchableOpacity style={styles.pinCancelBtn} onPress={handleCancelPin}>
+                <Text style={styles.pinCancelText}>ביטול</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
@@ -184,9 +424,17 @@ export default function AdminScreen({ navigation }) {
           <Text style={styles.headerTitle}>לוח ניהול</Text>
           <Text style={styles.headerSubtitle}>{books.length} ספרים בספרייה</Text>
         </View>
-        <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
-          <Ionicons name="add" size={26} color={COLORS.white} />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity style={styles.headerActionBtn} onPress={startChangePin}>
+            <Ionicons name="key-outline" size={22} color={COLORS.textSecondary} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.headerActionBtn} onPress={handleLock}>
+            <Ionicons name="lock-closed-outline" size={22} color={COLORS.textSecondary} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
+            <Ionicons name="add" size={26} color={COLORS.white} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <FlatList
@@ -571,5 +819,88 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: FONT_SIZES.lg,
     fontWeight: '700',
+  },
+  // PIN gate
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.background,
+  },
+  pinContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: SPACING['3xl'],
+  },
+  pinTitle: {
+    fontSize: FONT_SIZES['2xl'],
+    fontWeight: '800',
+    color: COLORS.text,
+    marginTop: SPACING.xl,
+    marginBottom: SPACING.sm,
+  },
+  pinSubtitle: {
+    fontSize: FONT_SIZES.base,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginBottom: SPACING.xl,
+  },
+  pinInput: {
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    paddingVertical: SPACING.base,
+    paddingHorizontal: SPACING.xl,
+    fontSize: FONT_SIZES['2xl'],
+    color: COLORS.text,
+    width: '60%',
+    letterSpacing: 12,
+    textAlign: 'center',
+  },
+  pinError: {
+    color: COLORS.error,
+    fontSize: FONT_SIZES.sm,
+    marginTop: SPACING.sm,
+    textAlign: 'center',
+  },
+  pinSubmitBtn: {
+    backgroundColor: COLORS.primary,
+    borderRadius: RADIUS.xl,
+    paddingVertical: SPACING.base,
+    paddingHorizontal: SPACING['3xl'],
+    marginTop: SPACING.xl,
+    ...SHADOWS.md,
+  },
+  pinSubmitBtnDisabled: {
+    opacity: 0.45,
+  },
+  pinSubmitText: {
+    color: COLORS.white,
+    fontSize: FONT_SIZES.lg,
+    fontWeight: '700',
+  },
+  pinCancelBtn: {
+    marginTop: SPACING.base,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.xl,
+  },
+  pinCancelText: {
+    color: COLORS.textMuted,
+    fontSize: FONT_SIZES.base,
+  },
+  // Admin header actions
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  headerActionBtn: {
+    padding: SPACING.sm,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.full,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
 });

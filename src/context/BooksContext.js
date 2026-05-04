@@ -107,6 +107,16 @@ export function BooksProvider({ children }) {
       const book = books.find((b) => b.id === id);
       if (!book) throw new Error('ספר לא נמצא');
       if (!book.remoteUrl) throw new Error('אין כתובת הורדה לספר זה');
+      // Validate that the URL is safe to download from (HTTPS only)
+      let parsedUrl;
+      try {
+        parsedUrl = new URL(book.remoteUrl);
+      } catch {
+        throw new Error('כתובת ההורדה אינה בפורמט URL תקין');
+      }
+      if (parsedUrl.protocol !== 'https:') {
+        throw new Error('כתובת ההורדה חייבת להשתמש ב-HTTPS');
+      }
       // Return cached local file if it already exists
       if (book.pdfUri) {
         const info = await FileSystem.getInfoAsync(book.pdfUri);
