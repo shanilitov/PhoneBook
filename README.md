@@ -96,3 +96,46 @@ npm run ios
 - **Navigation:** Bottom tabs (Library · Bookmarks · Admin) with nested stack navigators
 - **Reader UX:** Tap the screen to toggle the top/bottom control bars; swipe to turn pages
 - **Bookmarks:** Sorted by page number per book; add an optional note when saving
+
+## Next Steps
+
+After cloning and running the app locally, complete the following steps to enable cloud builds and OTA updates:
+
+1. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+2. **Log in to Expo / EAS**
+   ```bash
+   npx eas-cli login
+   ```
+
+3. **Link the project to your Expo account**
+   ```bash
+   npx eas-cli build:configure
+   ```
+   This populates `extra.eas.projectId` and `updates.url` in `app.json`.
+
+4. **Create a development build** (required for PDF reading — does not work in Expo Go)
+   ```bash
+   # Android
+   npx eas-cli build --platform android --profile development
+
+   # iOS
+   npx eas-cli build --platform ios --profile development
+   ```
+
+5. **Create a production build**
+   ```bash
+   # Android (AAB)
+   npx eas-cli build --platform android --profile production
+
+   # iOS
+   npx eas-cli build --platform ios --profile production
+   ```
+
+6. **Publish an OTA update** (no new build needed for JS-only changes)
+   ```bash
+   npx eas-cli update --branch production --message "describe your update"
+   ```
